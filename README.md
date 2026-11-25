@@ -32,11 +32,28 @@ plateaued around 19 before walking emerged after ~60M steps.
 Videos are in `videos/`, raw numbers in `results/results.json`, trained weights in `params/`.
 
 ## What I observed
-[FILL IN YOUR OWN WORDS after watching the videos. E.g. what happened to the gait without
-feet rewards? Did the energy penalty make it smoother or slower? Did anything fail?]
+- **Baseline:** the robot walks forward steadily for the whole 10 s rollout. It reaches 0.95 m/s for the
+  1.0 m/s command and never falls.
+- **10x energy penalty:** the robot stands still for the whole rollout, even though the policy receives
+  the same 1.0 m/s command. It stays upright and uses very little power (about 5 W against 110 W for
+  the baseline), but it never takes a real step forward.
+- **Training curves:** with the stronger penalty, the return stayed at 0 for the first ~45M steps and
+  then settled around 16-18, below the baseline's ~28. The policy found a stable way to collect reward
+  by standing, and more training did not move it towards walking.
+- **Training length matters too:** in an earlier run with only 50M steps, even the baseline stood still.
+  Its return plateaued around 19, and walking only appeared after ~60M steps.
 
 ## What I learned
-[FILL: 2-4 sentences. What surprised you, and what you would try next.]
+- A reward weight does not just tune the style of a behaviour; it can change which behaviour is learned
+  at all. Walking costs energy on every step, while the tracking reward only pays off once the robot is
+  already moving close to the commanded speed. With the energy penalty ten times stronger, standing still
+  became the easier local optimum, and PPO never left it.
+- A higher training return is not the same as the behaviour I want. Both "standing" policies had a
+  reasonable return, so I evaluate every policy with a task metric that does not depend on the reward
+  weights: the distance actually walked under a fixed command.
+- Next I would sweep the energy weight between 1x and 10x to find where walking breaks down, and try a
+  curriculum that starts with a small penalty and increases it once the robot already walks. This is how
+  the MuJoCo Playground handstand example adds its energy penalty.
 
 ## Reproduce
 Open the official
